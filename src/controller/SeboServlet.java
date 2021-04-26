@@ -33,8 +33,7 @@ public class SeboServlet extends HttpServlet{
 		String db = "jdbc:mysql://localhost:3306/store";
 		
 		cnx = new ConnectionDB(pilote, db);
-		articleDao = new ArticleDao(cnx);
-		//hello = new HelloDaoImpl(cx);
+		articleDao = new ArticleDao();
 	}
 
 	/*============ Get Methode =============*/
@@ -62,7 +61,6 @@ public class SeboServlet extends HttpServlet{
 			int id = Integer.parseInt(req.getParameter("num"));
 			Article article = articleDao.getArticleById(id);
 			req.setAttribute("article", article);
-			
 		}
 		RequestDispatcher view = req.getRequestDispatcher(jspMap);
 		view.forward(req, resp);

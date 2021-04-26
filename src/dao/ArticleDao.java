@@ -5,76 +5,39 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+
 import model.Article;
+import model.Categorie;
 
 public class ArticleDao {
 	
-	private ConnectionDB cnx;
-
-	public ArticleDao(ConnectionDB cnx) {
-		this.cnx = cnx;
+	private EntityManagerFactory emf;
+	private EntityManager em;
+	
+	public ArticleDao() {
+		emf = Persistence.createEntityManagerFactory("sebo_00");
+		em = emf.createEntityManager();
 	}
 	
 	public List<Article> getArticlesByGenre(String genre){
-		
-		List<Article> articles = new ArrayList<Article>();
-		String query = "SELECT a.*, c.Cat " + 
-				"FROM articles AS a " + 
-				"INNER JOIN categories AS c ON c.RefCat = a.Categorie " +
-				"WHERE c.Cat = '"+ genre +"';";
-		
-        try {
-			ResultSet rs =  cnx.getSt().executeQuery(query);
-			Article article = new Article();
-            while(rs.next()) {
-            	
-            	article.setReference(rs.getInt("CodeArticle"));
-            	article.setCategorie(rs.getString("Cat"));
-            	article.setAuteur(rs.getString("Auteur"));
-            	article.setEditeur(rs.getString("Editeur"));
-            	article.setAnnee(rs.getString("Annee"));
-            	article.setPrix(rs.getString("Prix"));
-            	article.setQteStock(rs.getString("Stock"));
-            	article.setTitre(rs.getString("Titre"));
-            	article.setPhoto(rs.getString("Photo"));
-            	
-            	articles.add(article);
-            }
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		
-		return articles;
+	      Query query = em.createQuery("SELECT c FROM Categories c WHERE c.Cat = :genre");
+	      query.setParameter("genre", genre);
+	      Categorie categorie = (Categorie) query.getResultList().get(0);
+	      return categorie.getArticles() ;
 	}
 
 	public Article getArticleById(int id) {
 		
-		Article article = new Article();
-		String query = "SELECT a.*, c.Cat " + 
-				"FROM articles AS a " + 
-				"INNER JOIN categories AS c ON c.RefCat = a.Categorie " +
-				"WHERE a.CodeArticle = "+ id +";";
-		
-        try {
-			ResultSet rs =  cnx.getSt().executeQuery(query);
-            while(rs.next()) {
-            	
-            	article.setReference(rs.getInt("CodeArticle"));
-            	article.setCategorie(rs.getString("Cat"));
-            	article.setAuteur(rs.getString("Auteur"));
-            	article.setEditeur(rs.getString("Editeur"));
-            	article.setAnnee(rs.getString("Annee"));
-            	article.setPrix(rs.getString("Prix"));
-            	article.setQteStock(rs.getString("Stock"));
-            	article.setTitre(rs.getString("Titre"));
-            	article.setPhoto(rs.getString("Photo"));
-            }
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		
-		return article;
+		Article article = em.find(Article.class, id);
+        if (article == null) {
+            throw new EntityNotFoundException("Can't find Artticle for ID "
+                + id);
+        }
+        return article;
 	}
 }
